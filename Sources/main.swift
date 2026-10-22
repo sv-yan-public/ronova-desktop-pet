@@ -257,7 +257,9 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
             let u=min(1,routineTime/2.8), ease=u*u*(3-2*u)
             let offset=routine == .rise ? ease : 1-ease
             if let area=(window.screen ?? NSScreen.main)?.visibleFrame {
-                let y=bounded(routineBaseY+routineLift*offset,area.minY+8,max(area.minY+8,area.maxY-window.frame.height-8))
+                let lower = Double(area.minY) + 8
+                let upper = max(lower, Double(area.maxY - window.frame.height) - 8)
+                let y=bounded(Double(routineBaseY)+Double(routineLift)*offset,lower,upper)
                 automaticMove=true;window.setFrameOrigin(CGPoint(x:window.frame.minX,y:y));automaticMove=false
             }
             if u>=1 {
@@ -339,7 +341,7 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
         let i=NSMenuItem(title:title,action:action,keyEquivalent:"");i.target=self;i.tag=tag;i.state=checked ? .on : .off;return i
     }
     func makeMenu()->NSMenu {
-        let m=NSMenu();m.addItem(NSMenuItem(title:"若娜瓦 1.2.3",action:nil,keyEquivalent:""))
+        let m=NSMenu();m.addItem(NSMenuItem(title:"若娜瓦 1.2.4",action:nil,keyEquivalent:""))
         m.addItem(.separator())
         let v=NSMenuItem(title:"视角",action:nil,keyEquivalent:"");let vm=NSMenu();for i in 0..<5{vm.addItem(item(labels[i],#selector(selectView(_:)),i,settings.view==i))};v.submenu=vm;m.addItem(v)
         m.addItem(item("自然待机",#selector(natural),0,!settings.rest));m.addItem(item("闭目休息",#selector(rest),0,settings.rest));m.addItem(item("轻轻致意（双击）",#selector(greet)))

@@ -1,0 +1,47 @@
+{
+  "fill-specializations": [
+    {
+      "value": {
+        "linear-gradient": [
+          "srgb:0.30,0.065,0.12,1",
+          "srgb:0.10,0.025,0.055,1"
+        ]
+      }
+    },
+    {
+      "appearance": "dark",
+      "value": {
+        "linear-gradient": [
+          "srgb:0.22,0.045,0.09,1",
+          "srgb:0.065,0.015,0.035,1"
+        ]
+      }
+    }
+  ],
+  "groups": [
+    {
+      "name": "Portrait",
+      "layers": [
+        {
+          "name": "Ronova",
+          "image-name": "Portrait.png",
+          "glass": false
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.15
+      },
+      "specular": false,
+      "translucency": {
+        "enabled": false,
+        "value": 0
+      }
+    }
+  ],
+  "supported-platforms": {
+    "squares": [
+      "macOS"
+    ]
+  }
+}

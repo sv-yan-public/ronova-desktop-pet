@@ -8,7 +8,7 @@ permissions:
   contents: read
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
       - name: Compile and package
@@ -19,3 +19,8 @@ jobs:
         with:
           name: ronova-desktop-pet-macos
           path: dist/*.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compiled-icon
+          path: .build/compiled-icon/
+          include-hidden-files: true
