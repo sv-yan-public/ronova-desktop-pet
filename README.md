@@ -4,7 +4,7 @@
 
 <img src="Assets/AppIcon.png" alt="若娜瓦头像" width="160">
 
-当前版本 **1.2.3**。使用 Swift、AppKit、SpriteKit 和 AVFoundation，无第三方运行依赖，可离线运行。
+当前版本 **1.2.4**。使用 Swift、AppKit、SpriteKit 和 AVFoundation，无第三方运行依赖，可离线运行。
 
 ## 功能
 
@@ -26,6 +26,10 @@
 
 手动选择视角或动作会退出随机循环；「暂停动作」保留自动模式，恢复后继续。新安装可从菜单开启随机生活，既有安装保留用户设置。
 
+## 图标
+
+采用 macOS 分层图标：透明人物前景搭配暗酒红渐变背景，支持默认和深色外观。
+
 ## 本地构建
 
 需要 macOS 14 或更高版本，以及 Xcode Command Line Tools（包含 Swift、macOS SDK 和 `xcrun`）。
@@ -35,6 +39,8 @@ xcode-select --install  # 仅在未安装开发工具时执行
 ./build.sh
 open 'dist/若娜瓦.app'
 ```
+
+仓库附带已编译的图标资源，因此仅安装 Command Line Tools 也能构建。修改 `Icon/Ronova.icon` 后需要完整 Xcode 26 或更高版本重新编译；GitHub Actions 会自动完成。
 
 构建当前 Mac 的原生架构，不是 Universal Binary。本项目目前在 Apple Silicon Mac 上验证；Intel、Windows 和 Linux 未做运行验证。Windows 需要移植窗口和渲染代码，不能直接运行本项目的 `.app`。
 

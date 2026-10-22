@@ -27,4 +27,6 @@ GitHub Actions 仅编译、验证签名并上传构建产物，不替代桌面 G
 
 ## 应用图标
 
-`make-icon.swift` 将透明背景头像封装为多分辨率 ICNS。macOS Tahoe 可能为旧格式图标添加系统底板，因此头像本身不再包含黑红色背景，避免形成双层方框。
+`Icon/Ronova.icon` 是可编辑的 Icon Composer 分层文档，保留人物原色并使用暗酒红渐变背景；前景关闭玻璃折射，避免脸部变形。`scripts/compile-icon.sh` 调用 Xcode 的 actool 生成 `Assets.car` 和旧版系统使用的 ICNS。Info.plist 同时设置 CFBundleIconName 和 CFBundleIconFile。
+
+`Assets/Compiled` 保存验证过的编译结果，方便只有 Command Line Tools 的 Mac 构建。缓存校验源文件 SHA-256，源文件变化时必须用完整 Xcode 重新生成，防止构建出旧图标。GitHub Actions 使用 macOS 26 环境编译。

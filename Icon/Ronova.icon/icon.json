@@ -25,7 +25,14 @@
         {
           "name": "Ronova",
           "image-name": "Portrait.png",
-          "glass": false
+          "glass": false,
+          "position": {
+            "scale": 0.78,
+            "translation-in-points": [
+              0,
+              16
+            ]
+          }
         }
       ],
       "shadow": {
