@@ -4,7 +4,7 @@
 
 `walk-left.png` 和 `walk-right.png` 是脚掌放平的小步走路专用姿态。走路时复用相应侧面的眼部贴图。
 
-`AppIcon.png` / `AppIcon.icns` 是应用头像；`StatusHead-source.png` 是状态栏白色卡通头像的源图，`StatusHead.png` 是36像素 Retina 版本，显示尺寸18点。
+`AppIcon.png` 是透明人物头像，`Icon/Ronova.icon` 是当前分层图标源文件，`Assets/Compiled` 是其已编译资源；`AppIcon.icns` 仅为旧版参考。`StatusHead-source.png` 是状态栏白色卡通头像的源图，`StatusHead.png` 是36像素 Retina 版本，显示尺寸18点。
 
 素材通过内置图像生成工具制作和局部修改，生成来源标识见 `asset-manifest.json`（历史记录，不是外部下载链接）。应用头像和状态栏图标在记录之后追加，源图随项目提供。未包含用户参考视频、原始参考图、剪贴板截图或私有文件。
 
