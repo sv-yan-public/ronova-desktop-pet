@@ -4,7 +4,7 @@
 
 <img src="Assets/AppIcon.png" alt="若娜瓦头像" width="160">
 
-当前版本 **1.2.4**。使用 Swift、AppKit、SpriteKit 和 AVFoundation，无第三方运行依赖，可离线运行。
+当前版本 **1.2.5**。使用 Swift、AppKit、SpriteKit 和 AVFoundation，无第三方运行依赖，可离线运行。
 
 ## 功能
 
@@ -18,7 +18,7 @@
 
 ## 使用
 
-1. 将构建得到的 `若娜瓦.app` 拖入“应用程序”，双击打开。
+1. 将构建得到的 `ronova.app` 拖入“应用程序”，双击打开。
 2. 点击菜单栏白色头像，或右键人物打开菜单。
 3. 勾选「随机生活 · 走动 / 悬浮 / 小动作」开启自动循环。
 4. 拖动人物移动位置，滚轮缩放，双击轻轻致意。
@@ -37,7 +37,7 @@
 ```sh
 xcode-select --install  # 仅在未安装开发工具时执行
 ./build.sh
-open 'dist/若娜瓦.app'
+open 'dist/ronova.app'
 ```
 
 仓库附带已编译的图标资源，因此仅安装 Command Line Tools 也能构建。修改 `Icon/Ronova.icon` 后需要完整 Xcode 26 或更高版本重新编译；GitHub Actions 会自动完成。

@@ -184,7 +184,7 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
     func applicationDidFinishLaunching(_ notification:Notification) {
         NSApp.setActivationPolicy(.accessory)
         window=PetWindow(contentRect:NSRect(x:120,y:100,width:340,height:500),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
-        window.title="若娜瓦";window.isOpaque=false;window.backgroundColor = .clear;window.hasShadow=false;window.hidesOnDeactivate=false;window.isReleasedWhenClosed=false
+        window.title="ronova";window.isOpaque=false;window.backgroundColor = .clear;window.hasShadow=false;window.hidesOnDeactivate=false;window.isReleasedWhenClosed=false
         window.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary];window.delegate=self
         view=PetView(frame:window.contentView!.bounds);view.owner=self;view.autoresizingMask=[.width,.height];view.allowsTransparency=true;view.preferredFramesPerSecond=30;view.ignoresSiblingOrder=true
         window.contentView=view
@@ -198,9 +198,9 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
             icon?.size=NSSize(width:18,height:18);icon?.isTemplate=false
             button.image=icon;button.imagePosition = .imageOnly
             button.title=icon == nil ? "若" : ""
-            button.setAccessibilityLabel("若娜瓦菜单")
+            button.setAccessibilityLabel("ronova菜单")
         }
-        status.button?.toolTip="若娜瓦：设置、恢复鼠标、退出";status.button?.target=self;status.button?.action=#selector(statusClick)
+        status.button?.toolTip="ronova：设置、恢复鼠标、退出";status.button?.target=self;status.button?.action=#selector(statusClick)
         let nc=NSWorkspace.shared.notificationCenter
         wakeTokens.append(nc.addObserver(forName:NSWorkspace.willSleepNotification,object:nil,queue:.main){[weak self] _ in self?.view.isPaused=true})
         wakeTokens.append(nc.addObserver(forName:NSWorkspace.didWakeNotification,object:nil,queue:.main){[weak self] _ in self?.scene.last=0;self?.view.isPaused=settings.paused})
@@ -341,7 +341,7 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
         let i=NSMenuItem(title:title,action:action,keyEquivalent:"");i.target=self;i.tag=tag;i.state=checked ? .on : .off;return i
     }
     func makeMenu()->NSMenu {
-        let m=NSMenu();m.addItem(NSMenuItem(title:"若娜瓦 1.2.4",action:nil,keyEquivalent:""))
+        let m=NSMenu();m.addItem(NSMenuItem(title:"ronova 1.2.5",action:nil,keyEquivalent:""))
         m.addItem(.separator())
         let v=NSMenuItem(title:"视角",action:nil,keyEquivalent:"");let vm=NSMenu();for i in 0..<5{vm.addItem(item(labels[i],#selector(selectView(_:)),i,settings.view==i))};v.submenu=vm;m.addItem(v)
         m.addItem(item("自然待机",#selector(natural),0,!settings.rest));m.addItem(item("闭目休息",#selector(rest),0,settings.rest));m.addItem(item("轻轻致意（双击）",#selector(greet)))
@@ -351,7 +351,7 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
         m.addItem(item(settings.paused ? "恢复动作" : "暂停动作",#selector(togglePause)))
         m.addItem(item("保持置顶",#selector(toggleTop),0,settings.top));m.addItem(item("鼠标穿透",#selector(togglePass),0,settings.pass))
         m.addItem(item("恢复鼠标并移回屏幕",#selector(recover)))
-        m.addItem(.separator());m.addItem(item("退出若娜瓦",#selector(quit)))
+        m.addItem(.separator());m.addItem(item("退出ronova",#selector(quit)))
         return m
     }
     @objc func statusClick(){status.menu=makeMenu();status.button?.performClick(nil);status.menu=nil}
@@ -366,7 +366,7 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
     @objc func quit(){settings.save();savePosition();NSApp.terminate(nil)}
     @objc func showSettings(){
         if let p=panel {p.makeKeyAndOrderFront(nil);NSApp.activate(ignoringOtherApps:true);return}
-        let p=NSPanel(contentRect:NSRect(x:200,y:200,width:460,height:420),styleMask:[.titled,.closable],backing:.buffered,defer:false);p.title="若娜瓦 · 动作设置";p.isReleasedWhenClosed=false
+        let p=NSPanel(contentRect:NSRect(x:200,y:200,width:460,height:420),styleMask:[.titled,.closable],backing:.buffered,defer:false);p.title="ronova · 动作设置";p.isReleasedWhenClosed=false
         let content=p.contentView!
         func text(_ s:String,_ x:CGFloat,_ y:CGFloat,_ w:CGFloat,_ h:CGFloat=24)->NSTextField {let l=NSTextField(wrappingLabelWithString:s);l.frame=NSRect(x:x,y:y,width:w,height:h);content.addSubview(l);return l}
         _=text("缓慢呼吸 · 独立随机眨眼",24,371,410)
