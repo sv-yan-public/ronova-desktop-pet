@@ -1,0 +1,30 @@
+{
+  "front": [
+    "exec-2ba7ae53-b6e3-43ec-9c77-27df65f0318e",
+    "exec-05069339-252c-4520-af7c-a410ac7b97df"
+  ],
+  "right": [
+    "exec-3d0ea787-1de0-4578-90fe-de8021b38d68",
+    "e2ac450ace7345d6b4733edd77a83f94"
+  ],
+  "left": [
+    "exec-28c609d9-a93e-4ab2-bcf3-7234c7690c43",
+    "8decb617d6a04f73993a214502fb955a"
+  ],
+  "profile-left": [
+    "exec-56611cc7-59bb-4cad-b521-c747375adbc1",
+    "8ffc07668a114beebcac9023f8d4916d"
+  ],
+  "profile-right": [
+    "exec-d1dfc267-d89a-4c5f-813b-bf47afc0533b",
+    "0dc0642b4e89483cb13b6c83ca23ba77"
+  ],
+  "walk-left": [
+    "exec-b7f87907-4a47-4dbf-8209-e5a5c025c1ef",
+    "eye region from profile-left-closed"
+  ],
+  "walk-right": [
+    "exec-11b09ac0-0b84-4884-bc35-1391be08e10d",
+    "eye region from profile-right-closed"
+  ]
+}

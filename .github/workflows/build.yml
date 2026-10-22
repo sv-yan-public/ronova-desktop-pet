@@ -1,0 +1,21 @@
+name: Build macOS App
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and package
+        run: ./scripts/package.sh
+      - name: Verify signature
+        run: codesign --verify --deep --strict 'dist/若娜瓦图片版.app'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ronova-desktop-pet-macos
+          path: dist/*.dmg

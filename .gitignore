@@ -1,0 +1,19 @@
+# macOS / editor files
+.DS_Store
+._*
+*.swp
+.vscode/
+.idea/
+# Local builds and verification output
+.build/
+dist/
+Previews/
+*.dmg
+*.app/
+*.zip
+# Local secrets and configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
