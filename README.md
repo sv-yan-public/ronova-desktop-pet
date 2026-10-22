@@ -4,7 +4,7 @@
 
 <img src="Assets/AppIcon.png" alt="若娜瓦头像" width="160">
 
-当前版本 **1.2.2**。使用 Swift、AppKit、SpriteKit 和 AVFoundation，无第三方运行依赖，可离线运行。
+当前版本 **1.2.3**。使用 Swift、AppKit、SpriteKit 和 AVFoundation，无第三方运行依赖，可离线运行。
 
 ## 功能
 
@@ -18,7 +18,7 @@
 
 ## 使用
 
-1. 将构建得到的 `若娜瓦图片版.app` 拖入“应用程序”，双击打开。
+1. 将构建得到的 `若娜瓦.app` 拖入“应用程序”，双击打开。
 2. 点击菜单栏白色头像，或右键人物打开菜单。
 3. 勾选「随机生活 · 走动 / 悬浮 / 小动作」开启自动循环。
 4. 拖动人物移动位置，滚轮缩放，双击轻轻致意。
@@ -33,7 +33,7 @@
 ```sh
 xcode-select --install  # 仅在未安装开发工具时执行
 ./build.sh
-open 'dist/若娜瓦图片版.app'
+open 'dist/若娜瓦.app'
 ```
 
 构建当前 Mac 的原生架构，不是 Universal Binary。本项目目前在 Apple Silicon Mac 上验证；Intel、Windows 和 Linux 未做运行验证。Windows 需要移植窗口和渲染代码，不能直接运行本项目的 `.app`。

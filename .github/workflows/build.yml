@@ -14,7 +14,7 @@ jobs:
       - name: Compile and package
         run: ./scripts/package.sh
       - name: Verify signature
-        run: codesign --verify --deep --strict 'dist/若娜瓦图片版.app'
+        run: codesign --verify --deep --strict 'dist/若娜瓦.app'
       - uses: actions/upload-artifact@v4
         with:
           name: ronova-desktop-pet-macos

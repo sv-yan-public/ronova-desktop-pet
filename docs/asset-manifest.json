@@ -26,5 +26,9 @@
   "walk-right": [
     "exec-11b09ac0-0b84-4884-bc35-1391be08e10d",
     "eye region from profile-right-closed"
+  ],
+  "app-icon": [
+    "exec-f44d8e67-ddb1-4c26-87a9-91306fb6578b",
+    "imagegen: remove black/red background; preserve character identity; transparent alpha"
   ]
 }
