@@ -1,34 +1,50 @@
 {
   "front": [
-    "exec-2ba7ae53-b6e3-43ec-9c77-27df65f0318e",
-    "exec-05069339-252c-4520-af7c-a410ac7b97df"
+    "exec-04d555c8-c212-4707-aaaa-22d5ec0ac7fe",
+    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
   ],
   "right": [
-    "exec-3d0ea787-1de0-4578-90fe-de8021b38d68",
-    "e2ac450ace7345d6b4733edd77a83f94"
+    "exec-be9931f4-ebfd-4d43-90d6-1609f3e6ed5d",
+    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
   ],
   "left": [
-    "exec-28c609d9-a93e-4ab2-bcf3-7234c7690c43",
-    "8decb617d6a04f73993a214502fb955a"
+    "exec-be0cef03-0aa8-4372-969f-2dd48df072c2",
+    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
   ],
   "profile-left": [
-    "exec-56611cc7-59bb-4cad-b521-c747375adbc1",
-    "8ffc07668a114beebcac9023f8d4916d"
+    "exec-61bc7ea7-ccce-4097-a18e-daf1af13be07",
+    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
   ],
   "profile-right": [
-    "exec-d1dfc267-d89a-4c5f-813b-bf47afc0533b",
-    "0dc0642b4e89483cb13b6c83ca23ba77"
+    "exec-e80e838d-2682-441f-a16e-ac0ed848bb11",
+    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
   ],
   "walk-left": [
-    "exec-b7f87907-4a47-4dbf-8209-e5a5c025c1ef",
-    "eye region from profile-left-closed"
+    "exec-61713947-9a64-4d40-afe1-c940f4e626dc",
+    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
   ],
   "walk-right": [
-    "exec-11b09ac0-0b84-4884-bc35-1391be08e10d",
-    "eye region from profile-right-closed"
+    "exec-43cb837b-477d-4f84-b87c-fb03d30ed19e",
+    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
   ],
   "app-icon": [
     "exec-f44d8e67-ddb1-4c26-87a9-91306fb6578b",
     "imagegen: remove black/red background; preserve character identity; transparent alpha"
+  ],
+  "walk-left-body": [
+    "exec-4add902b-b1a2-4a37-95b0-971fdc54bc26",
+    "plain stockings; shoe ornament only at ankle"
+  ],
+  "walk-left-leg": [
+    "exec-ba81edcf-24ec-4c2a-86f5-7355d112ce02",
+    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
+  ],
+  "walk-right-body": [
+    "exec-160b5296-5fff-473f-b679-879b59d46e30",
+    "leg-free body for independent walking layers"
+  ],
+  "walk-right-leg": [
+    "exec-8f3e1a8e-79b1-4d3f-a9ef-fe64806843f0",
+    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
   ]
 }

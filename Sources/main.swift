@@ -31,6 +31,9 @@ let settings = Settings()
 
 final class PetScene: SKScene {
     var pet = SKSpriteNode()
+    var legRig: WalkingRig!
+    var gaitPhase: Double = 0
+    var gaitBlend: Float = 0
     var clock: Double = 0
     var last: Double = 0
     var nextBlink: Double = 8
@@ -49,7 +52,7 @@ final class PetScene: SKScene {
         super.init(size:size)
         backgroundColor = .clear; scaleMode = .resizeFill
         for y in 0...rows { for x in 0...cols { source.append(SIMD2(Float(x)/Float(cols),Float(y)/Float(rows))) } }
-        pet.subdivisionLevels=0; addChild(pet); loadView(); nextBlink = Double.random(in:settings.blinkMin...settings.blinkMax)
+        pet.subdivisionLevels=0; addChild(pet); legRig=WalkingRig(parent:self); loadView(); nextBlink = Double.random(in:settings.blinkMin...settings.blinkMax)
     }
     required init?(coder:NSCoder) { fatalError() }
     func texture(_ name:String) -> SKTexture {
@@ -62,6 +65,7 @@ final class PetScene: SKScene {
         let name=names[displayView]
         let bodyName = facing == nil ? name : (displayView == 3 ? "walk-left" : "walk-right")
         pet.texture=texture(bodyName)
+        if facing != nil {legRig.load(displayView);pet.texture=legRig.body}
         let shader=SKShader(source:"""
         void main() {
             vec2 uv = v_tex_coord;
@@ -80,12 +84,14 @@ final class PetScene: SKScene {
     func layout() {
         let h = min(size.height-40,(size.width-120)*1.5)
         pet.size=CGSize(width:h/1.5,height:h); pet.position=CGPoint(x:size.width/2,y:size.height/2)
+        legRig?.layout(size:pet.size,position:pet.position,visible:facing != nil)
     }
     override func didChangeSize(_ oldSize:CGSize) { layout() }
     override func update(_ time:TimeInterval) {
         if manual {return}
         let dt=last==0 ? 0 : min(0.1,time-last);last=time
         if settings.paused {return}
+        gaitBlend += (min(1,max(0,walking ? 1 : 0))-gaitBlend)*Float(min(1,dt*8))
         clock += dt
         if clock >= nextBlink { blinkEnd=clock+0.16;nextBlink=clock+Double.random(in:settings.blinkMin...settings.blinkMax);blinkCount += 1 }
         render(clock,blink:clock < blinkEnd)
@@ -93,7 +99,8 @@ final class PetScene: SKScene {
     func render(_ t:Double,blink:Bool) {
         let p=Float(t/settings.period*2 * .pi), a=Float(settings.amplitude)
         let nod=Float(max(0,1-abs(t-greeting-1.8)/1.8))
-        let gait=Float(t/2.4*2 * .pi)
+        let phase = manual ? t/WalkCycle.previewPeriod : gaitPhase
+        let gait=Float(phase*2 * .pi)
         let walkPose = facing != nil
         let clothPhase = walkPose ? gait : p
         let clothScale:Float = walkPose ? (walking ? 0.18 : 0) : a
@@ -112,26 +119,19 @@ final class PetScene: SKScene {
             let skirt=sin(clothPhase-1.1+x*2)*0.016*clothScale*hem
             // Floating pose: translate every vertex, including both feet.
             var dx=bodyX+hair+skirt
-            var dy=bodyY + cos(clothPhase-0.8-y*2)*0.004*clothScale*outer*hairRegion - nod*0.005*upper
+            let dy=bodyY + cos(clothPhase-0.8-y*2)*0.004*clothScale*outer*hairRegion - nod*0.005*upper
             if walking {
                 // Small opposing shoulder/hip motion, no whole-body floating or rocking.
                 let torso=max(0,1-abs(y-0.62)/0.24)
                 dx += sin(gait)*0.003*(y-0.62)/0.24*torso
-                // Separate smooth leg influence regions; the hips stay fixed.
-                let near:Float = displayView == 3 ? 0.320 : 0.805
-                let far:Float = displayView == 3 ? 0.440 : 0.680
-                let lower=max(0,min(1,(0.43-y)/0.32))
-                let n=exp(-pow((x-near)/0.055,2))*lower
-                let f=exp(-pow((x-far)/0.055,2))*lower
-                let direction:Float = displayView == 3 ? -1 : 1
-                dx += direction*sin(gait)*0.018*(n-f)
-                dy += 0.008*(max(0,cos(gait))*n+max(0,-cos(gait))*f)
+
             }
             // Rotate in physical aspect ratio around the body center, then float.
             let rx=(x-0.5)*ca-(y-0.52)*1.5*sa
             let ry=(x-0.5)/1.5*sa+(y-0.52)*ca
             dest.append(SIMD2(0.5+rx+dx,0.52+ry+dy))
         }
+        if walkPose {legRig.render(phase:phase,amount:manual ? (walking ? 1 : 0) : gaitBlend)}
         pet.warpGeometry=SKWarpGeometryGrid(columns:cols,rows:rows,sourcePositions:source,destinationPositions:dest)
         pet.shader?.uniformNamed("u_blink")?.floatValue = (blink || settings.rest) ? 1 : 0
     }
@@ -310,7 +310,7 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
         if turnWait>0 {turnWait=max(0,turnWait-dt);scene.walking=false}
         else if maxX-area.minX>4 {
             scene.walking=true
-            let strideSpeed=max(8,CGFloat(settings.height/1.5)*0.03)
+            let strideSpeed=max(8,scene.pet.size.width * CGFloat(WalkCycle.stride / WalkCycle.stance / WalkCycle.previewPeriod))
             walkSpeed=min(strideSpeed,walkSpeed+CGFloat(dt)*12)
             origin.x += walkDirection*walkSpeed*CGFloat(dt)
             if origin.x<=area.minX || origin.x>=maxX {
@@ -319,6 +319,10 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
                 updateWalkingView();scene.walking=false
             }
         } else {scene.walking=false}
+        if scene.walking {
+            let moved=abs(origin.x-(walkX ?? window.frame.origin.x))
+            scene.gaitPhase += Double(moved/max(1,scene.pet.size.width)) / (WalkCycle.stride/WalkCycle.stance)
+        }
         walkX=origin.x
         automaticMove=true;window.setFrameOrigin(origin);automaticMove=false
     }
@@ -341,7 +345,7 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
         let i=NSMenuItem(title:title,action:action,keyEquivalent:"");i.target=self;i.tag=tag;i.state=checked ? .on : .off;return i
     }
     func makeMenu()->NSMenu {
-        let m=NSMenu();m.addItem(NSMenuItem(title:"Ronova 1.2.6",action:nil,keyEquivalent:""))
+        let m=NSMenu();m.addItem(NSMenuItem(title:"Ronova 1.3.0",action:nil,keyEquivalent:""))
         m.addItem(.separator())
         let v=NSMenuItem(title:"视角",action:nil,keyEquivalent:"");let vm=NSMenu();for i in 0..<5{vm.addItem(item(labels[i],#selector(selectView(_:)),i,settings.view==i))};v.submenu=vm;m.addItem(v)
         m.addItem(item("自然待机",#selector(natural),0,!settings.rest));m.addItem(item("闭目休息",#selector(rest),0,settings.rest));m.addItem(item("轻轻致意（双击）",#selector(greet)))
@@ -431,6 +435,26 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
             view.dragOffset = .zero;activityTick(1);report["routineDragFreezes"]=routineTime==oldTime;view.dragOffset=nil
             stopRoutine();settings.wandering=false;scene.facing=nil;scene.walking=false
         }
+        var planted = true, alternating = true, continuous = true
+        for i in 0..<1000 {
+            let p = Double(i)/1000
+            let a = WalkCycle.foot(p), b = WalkCycle.foot(p+0.5)
+            alternating = alternating && !(a.y > 0.00001 && b.y > 0.00001)
+            if p+0.0001 < WalkCycle.stance {
+                let next = WalkCycle.foot(p+0.0001)
+                let screenDrift = Double(next.x-a.x) + WalkCycle.stride/WalkCycle.stance*0.0001
+                planted = planted && abs(screenDrift) < 0.000001 && a.y == 0
+            }
+            let next = WalkCycle.foot(p+0.001)
+            continuous = continuous && abs(next.x-a.x)<0.002 && abs(next.y-a.y)<0.002
+        }
+        report["stanceFootLocksToGround"]=planted
+        report["legsAlternateWithGroundSupport"]=alternating
+        report["gaitLoopIsContinuous"]=continuous
+        let h=SIMD2<Float>(0,0), a=SIMD2<Float>(0.03,-0.59)
+        let k=WalkCycle.knee(hip:h,ankle:a,upper:0.3,lower:0.31,direction:1)
+        func length(_ v:SIMD2<Float>)->Float {sqrt(v.x*v.x+v.y*v.y)}
+        report["legBonesKeepTheirLength"] = abs(length(k-h)-0.3)<0.0001 && abs(length(a-k)-0.31)<0.0001
         report["assets"]=names;report["periodSeconds"]=settings.period;report["blinkRangeSeconds"]=[settings.blinkMin,settings.blinkMax]
         scene.manual=false;scene.clock=0;scene.last=0;scene.rescheduleBlink()
         var blinkTimes=[Double]();var previousCount=scene.blinkCount
@@ -442,17 +466,20 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
         scene.manual=true;scene.clock=0;scene.last=0;scene.rescheduleBlink()
         var index=0
         func step(){
-            if index>=14 {if CommandLine.arguments.contains("--quick") { NSApp.terminate(nil);return };self.captureMovie(dir:dir){
+            if index>=30 {if CommandLine.arguments.contains("--quick") { NSApp.terminate(nil);return };self.captureMovie(dir:dir){
                 if let data=try? JSONSerialization.data(withJSONObject:report,options:.prettyPrinted){try? data.write(to:URL(fileURLWithPath:dir+"/checks.json"))};NSApp.terminate(nil)};return}
             let outputName:String
             if index<10 {
                 settings.view=index/2;self.scene.facing=nil;self.scene.walking=false
                 outputName=names[index/2]
-            } else {
+            } else if index<14 {
                 self.scene.facing=index<12 ? 3 : 4;self.scene.walking=true
                 outputName=index<12 ? "walk-left" : "walk-right"
+            } else {
+                self.scene.facing=index<22 ? 3 : 4;self.scene.walking=true
+                outputName="gait-\(index<22 ? "left" : "right")-\((index-14)%8)"
             }
-            self.scene.loadView();self.scene.render(0,blink:index%2==1)
+            self.scene.loadView();self.scene.render(index<14 ? 0 : Double((index-14)%8)/8*WalkCycle.previewPeriod,blink:index<14 && index%2==1)
             DispatchQueue.main.asyncAfter(deadline:.now()+0.15){
                 if let cg=self.view.texture(from:self.scene)?.cgImage(){let rep=NSBitmapImageRep(cgImage:cg);try? rep.representation(using:.png,properties:[:])?.write(to:URL(fileURLWithPath:dir+"/\(outputName)-\(index%2).png"))}
                 index += 1;step()
