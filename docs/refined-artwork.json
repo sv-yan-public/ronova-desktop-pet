@@ -1,0 +1,19 @@
+{
+  "tool": "built-in imagegen",
+  "reference": {
+    "official": "https://x.com/Genshin_7/status/2106595165049631108",
+    "reproduction": "https://www.4gamer.net/games/486/G048621/20261005011/",
+    "image": "https://www.4gamer.net/games/486/G048621/20261005011/SS/001.jpg"
+  },
+  "prompt": "Use case: identity-preserve. Image 1 is the EDIT TARGET, the existing desktop-pet sprite. Image 2 is OFFICIAL CHARACTER ART, reference ONLY for refined face/eyes, hair treatment, elegant crisp linework and clean material separation. Edit Image 1 only. Keep its EXACT 1024x1536 canvas, full-body pose, composition, head size/location, face orientation, gaze and eye coordinates, limb and shoe coordinates, hair silhouette, costume shapes, ankle patterns and animation registration. Refine face, hair and upper torso with intentional clean professional anime linework: elegant gold patterned irises with fine eyelashes, subtle clean nose and mouth, luminous pale skin, silky ivory-white hair with coherent pale cool rose-gray shadow ribbons and precise strand groups (not scratchy micro-lines). Improve upper-body readability with soft neutral front fill and deliberate smooth midtones separating black bodice, sheer sleeves, skin and silver trims; preserve black/red costume palette and form, do not wash out blacks. Eliminate muddy shading and jagged silver ornament noise. Lower body, stockings, pose and costume must remain unchanged. No black specks, grain, scratches, mottling, broken shadows, extra patterns, halos, black outlines, interior holes, ghosted edges or blurred details. True transparent background and clean alpha. Do not reproduce reference backdrop, text, wings or its arm pose. Do not redesign the character. Output one complete full-body sprite.",
+  "assets": {
+    "front": "1b612cea-00c1-40d4-88fd-01b78a802819",
+    "left": "0ea1dc4b-de14-449c-b71a-3ef892950031",
+    "right": "5b4bdfba-ebd5-4c88-8bf9-0fd6b57220fc",
+    "profile-left": "7ccb8c52-e543-4732-b6ea-9acbf8f64d33",
+    "profile-right": "3b8fd04a-9a5a-470f-845b-fe9d65a9e652",
+    "walk-left-body": "b4233ba5-e796-41ed-8f89-09eca9cbe7da",
+    "walk-right-body": "e98b6178-5c48-491e-80e7-90c705ac3fb9"
+  },
+  "integration": "Clean remains color and alpha base; Refined contributes opaque upper-body interior RGB only, smoothly limited to texture y 0.50–0.60 and above. Lower body, legs, silhouette and eye registration remain from Clean. Generated alpha is not used as character coverage."
+}

@@ -1,0 +1,15 @@
+{
+  "tool": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Edit target: the supplied full-body desktop character sprite. Restore it into exceptionally CLEAN, crisp professional anime cel artwork. Remove ALL mottled dirty grain, black speckles, scratchy micro-lines, muddy black smudges, fractured noisy shading on white hair, silver ornaments, skin and stockings. Use smooth clean color fills and deliberate coherent soft shadow shapes, clear fine outlines. Hair bright ivory white with restrained clean pale pink shadows, silver trim clean silver, skin clear luminous ivory; stockings plain uniform smoky taupe with smooth volume shading, no texture/noise. Preserve exact identity, face, expression, costume, red/black palette, pose, composition and silhouette, placement of every limb and shoe, thin elongated ankle diamonds, all ornaments. Do not redesign or simplify costume shapes. Keep exact 1024x1536 canvas and character alignment for existing animation rig. True fully transparent background, no black backdrop, no glow, no drop shadow, no matte haze, no debris outside character. This is a cleanup of the whole artwork, not a sharpening filter: visibly eliminate dirty painted texture. Keep subject opaque with anti-aliased transparent edges.",
+  "assets": {
+    "front": "exec-1fe8f564-02e7-4a08-93a7-2d2eecd216b7.png",
+    "left": "exec-29a8ef66-2693-436d-88f3-3ec831fe10ec.png",
+    "right": "exec-ef514d17-184f-4f73-ad61-4ad23fdb8ebf.png",
+    "profile-left": "exec-f3970372-d773-470c-904e-1753e1fc0318.png",
+    "profile-right": "exec-893db24b-3d2e-4f54-a185-f8478e10db8e.png",
+    "walk-left-body": "exec-f96e6e25-116c-40b6-900a-ce646b83608d.png",
+    "walk-right-body": "exec-e2df9c40-4381-4ec5-8bd4-bab81e208d06.png",
+    "walk-left-leg": "exec-06abef85-6786-4f3e-9fcc-b0f0b57473d2.png",
+    "walk-right-leg": "exec-2708e9d7-489b-4a7a-84fd-fe8aa4c6ae06.png"
+  }
+}

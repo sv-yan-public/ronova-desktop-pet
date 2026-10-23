@@ -1,0 +1,12 @@
+{
+  "tool": "built-in imagegen",
+  "reference": "https://www.4gamer.net/games/486/G048621/20261005011/",
+  "assets": {
+    "front": "f23879f7-9e5d-4d99-8257-28e71521a28b",
+    "left": "1ffc86d2-effe-4b00-9ffd-a5e223c66861",
+    "right": "191c25fb-c247-44bb-aa0e-ae598474a70b",
+    "profile-left": "1e9802fc-803e-47a0-94c3-4df7dd056af9",
+    "profile-right": "71396f86-5b24-491c-b936-c4e3cacbdaf4"
+  },
+  "integration": "Only per-view face box RGB replaces the previous rendering; local alpha is the intersection of Clean and the face candidate to exclude generated matte residue. Existing Clean/Refined body, BustShape and all other regions remain unchanged. Walking uses the corresponding profile face. Closed eyes use existing eye-only sampling, preserving the new mouth and jaw."
+}

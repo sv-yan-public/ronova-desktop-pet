@@ -6,6 +6,10 @@ struct WalkCycle {
     static let stance: Double = 0.62
     static let stride: Double = 0.105
     static let previewPeriod: Double = 2.6
+    static func pelvis(_ phase: Double, amount: Float) -> SIMD2<Float> {
+        let t = Float(phase * 2 * .pi)
+        return SIMD2(sin(t) * 0.002, (cos(2*t)-1) * 0.0018) * amount
+    }
     static func foot(_ phase: Double) -> SIMD2<Float> {
         let p = phase - floor(phase)
         if p < stance {
@@ -44,8 +48,9 @@ final class WalkingRig {
         for node in [near,far] {node.shader=SKShader(source:"""
         void main() {
             vec4 c = texture2D(u_texture,v_tex_coord);
-            float a = smoothstep(0.90,0.98,c.a);
-            gl_FragColor = vec4(c.rgb*(a/max(c.a,0.001))*u_shade,a);
+            vec3 rgb = c.rgb/max(c.a,0.001);
+            float a = smoothstep(0.025,0.99,c.a);
+            gl_FragColor = vec4(rgb*a*u_shade,a);
         }
         """);node.shader?.uniforms=[SKUniform(name:"u_shade",float:node === far ? 0.88 : 1)] }
         far.color = .black; far.colorBlendFactor = 0.13
@@ -60,11 +65,15 @@ final class WalkingRig {
             layerOrigin=SIMD2(0.366,0.88);layerScale=0.673
             hip=SIMD2(0.33,0.56);knee=hip+(SIMD2(0.354,0.57)-layerOrigin)*layerScale;ankle=hip+(SIMD2(0.327,0.23)-layerOrigin)*layerScale
         }
-        if let stored=cache[side] {body=stored.0;near.texture=stored.1;far.texture=stored.1;return}
+        // Bury the cutout cap inside the pelvis, beneath the front costume.
+        hip.y += 0.070
+        if let stored=cache[side] {
+            body=stored.0;near.texture=stored.1;far.texture=stored.1;return
+        }
         func texture(_ part:String)->SKTexture {
-            let url=Bundle.main.resourceURL!.appendingPathComponent("Assets/walk-\(side==3 ? "left" : "right")-\(part).png")
+            let url=Bundle.main.resourceURL!.appendingPathComponent("Assets/Clean/walk-\(side==3 ? "left" : "right")-\(part).png")
             guard let image=NSImage(contentsOf:url) else {fatalError("Missing walking layer: \(url.lastPathComponent)")}
-            let texture=SKTexture(image:image);texture.filteringMode = .linear;return texture
+            let texture=SKTexture(image:image);texture.filteringMode = .linear;texture.usesMipmaps=true;return texture
         }
         // The body asset contains no legs. A clean single-leg cutout is skinned
         // independently twice, so no old foot remains beneath the moving layers.
@@ -82,8 +91,9 @@ final class WalkingRig {
         for (index,node) in [near,far].enumerated() {
             let offset=WalkCycle.foot(phase+Double(index)*0.5)*amount
             // The far hip is behind the near hip, but both feet share the ground.
-            let depth:Float = index==0 ? 0 : -direction*0.022
-            let newH=h+SIMD2(depth,0)
+            let depth:Float = index==0 ? 0 : -direction*0.012
+            let pelvis = WalkCycle.pelvis(phase, amount: amount)
+            let newH=h+SIMD2(depth+pelvis.x,pelvis.y*1.5)
             let newA=a+SIMD2(depth+offset.x*direction,offset.y*1.5)
             let newK=WalkCycle.knee(hip:newH,ankle:newA,upper:length(k-h),lower:length(a-k),direction:direction)
             func rigid(_ p:SIMD2<Float>,_ start:SIMD2<Float>,_ end:SIMD2<Float>,_ targetStart:SIMD2<Float>,_ targetEnd:SIMD2<Float>)->SIMD2<Float> {
@@ -92,9 +102,18 @@ final class WalkingRig {
                 return targetStart+SIMD2(q.x*cos(angle)-q.y*sin(angle),q.x*sin(angle)+q.y*cos(angle))
             }
             let dest=source.map {uv -> SIMD2<Float> in
-                let aligned=hip+(uv-layerOrigin)*layerScale
+                var aligned=hip-SIMD2(0,0.070)+(uv-layerOrigin)*layerScale
+                // Extend the painted cap as well as the joint into the socket.
+                // Leave the knee, ankle and sole at their original heights.
+                let extensionWeight=WalkingUpperBody.smooth((aligned.y-knee.y)/(0.56-knee.y))
+                aligned.y += 0.070*extensionWeight
                 let p=physical(aligned)
-                let upper=rigid(p,h,k,newH,newK)
+                let rotatedUpper=rigid(p,h,k,newH,newK)
+                // Skin the upper thigh into a fixed socket instead of rotating
+                // its rounded cut edge out from under the costume.
+                let rootWeight=min(1,max(0,(0.54-aligned.y)/0.13))
+                let rootBlend=rootWeight*rootWeight*(3-2*rootWeight)
+                let upper=(p+newH-h)*(1-rootBlend)+rotatedUpper*rootBlend
                 let lower=rigid(p,k,a,newK,newA)
                 let shoe=p+(newA-a)
                 func smooth(_ x:Float)->Float {let t=min(1,max(0,x));return t*t*(3-2*t)}

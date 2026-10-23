@@ -1,31 +1,31 @@
 {
   "front": [
-    "exec-04d555c8-c212-4707-aaaa-22d5ec0ac7fe",
-    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
+    "exec-3923c5b1-3ffc-4732-a855-403c05229b69",
+    "built-in imagegen: replace ankle badge with narrow elongated irregular lozenge and long tapered tail; preserve pose, silhouette, stockings, shoe positions and transparency; reference-based local edit"
   ],
   "right": [
-    "exec-be9931f4-ebfd-4d43-90d6-1609f3e6ed5d",
-    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
+    "exec-a958b313-8f80-4919-a77c-f8e19bbee044",
+    "built-in imagegen: replace ankle badge with narrow elongated irregular lozenge and long tapered tail; preserve pose, silhouette, stockings, shoe positions and transparency; reference-based local edit"
   ],
   "left": [
-    "exec-be0cef03-0aa8-4372-969f-2dd48df072c2",
-    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
+    "exec-05702070-4d31-493d-83d6-77d14d84c7a1",
+    "built-in imagegen: replace ankle badge with narrow elongated irregular lozenge and long tapered tail; preserve pose, silhouette, stockings, shoe positions and transparency; reference-based local edit"
   ],
   "profile-left": [
-    "exec-61bc7ea7-ccce-4097-a18e-daf1af13be07",
-    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
+    "exec-ce22e166-e1d5-41bf-8829-020e872d6cc9",
+    "built-in imagegen: replace ankle badge with narrow elongated irregular lozenge and long tapered tail; preserve pose, silhouette, stockings, shoe positions and transparency; reference-based local edit"
   ],
   "profile-right": [
-    "exec-e80e838d-2682-441f-a16e-ac0ed848bb11",
-    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
+    "exec-cef0bf92-118e-4220-8145-a527f3d1a86b",
+    "built-in imagegen: replace ankle badge with narrow elongated irregular lozenge and long tapered tail; preserve pose, silhouette, stockings, shoe positions and transparency; reference-based local edit"
   ],
   "walk-left": [
-    "exec-61713947-9a64-4d40-afe1-c940f4e626dc",
-    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
+    "exec-e843acfd-6f00-430f-9845-cc7772349034",
+    "built-in imagegen: replace ankle badge with narrow elongated irregular lozenge and long tapered tail; preserve pose, silhouette, stockings, shoe positions and transparency; reference-based local edit"
   ],
   "walk-right": [
-    "exec-43cb837b-477d-4f84-b87c-fb03d30ed19e",
-    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
+    "exec-b993dcf6-f8b7-47e6-a74c-a36828719cea",
+    "built-in imagegen: replace ankle badge with narrow elongated irregular lozenge and long tapered tail; preserve pose, silhouette, stockings, shoe positions and transparency; reference-based local edit"
   ],
   "app-icon": [
     "exec-f44d8e67-ddb1-4c26-87a9-91306fb6578b",
@@ -36,15 +36,43 @@
     "plain stockings; shoe ornament only at ankle"
   ],
   "walk-left-leg": [
-    "exec-ba81edcf-24ec-4c2a-86f5-7355d112ce02",
-    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
+    "exec-f571c7ba-bf9f-46ba-8a1e-638ee8512a08",
+    "built-in imagegen: replace ankle badge with narrow elongated irregular lozenge and long tapered tail; preserve pose, silhouette, stockings, shoe positions and transparency; reference-based local edit"
   ],
   "walk-right-body": [
     "exec-160b5296-5fff-473f-b679-879b59d46e30",
     "leg-free body for independent walking layers"
   ],
   "walk-right-leg": [
+    "exec-2f73f14b-96c3-4395-b0b3-eee288226c00",
+    "built-in imagegen: replace ankle badge with narrow elongated irregular lozenge and long tapered tail; preserve pose, silhouette, stockings, shoe positions and transparency; reference-based local edit"
+  ],
+  "walk-left-leg-coverage": [
+    "exec-ba81edcf-24ec-4c2a-86f5-7355d112ce02",
+    "Preserved pre-edit artwork: authoritative RGB outside the ankle patch and authoritative alpha everywhere. Never overwrite with regenerated artwork."
+  ],
+  "walk-right-leg-coverage": [
     "exec-8f3e1a8e-79b1-4d3f-a9ef-fe64806843f0",
-    "imagegen: thin nested elongated diamond on shoe/ankle only; plain calf and thigh; preserve pose"
+    "Preserved pre-edit artwork: authoritative RGB outside the ankle patch and authoritative alpha everywhere. Never overwrite with regenerated artwork."
+  ],
+  "front-coverage": [
+    "exec-04d555c8-c212-4707-aaaa-22d5ec0ac7fe",
+    "Preserved pre-edit artwork: authoritative RGB outside the ankle patch and authoritative alpha everywhere. Never overwrite with regenerated artwork."
+  ],
+  "left-coverage": [
+    "exec-be0cef03-0aa8-4372-969f-2dd48df072c2",
+    "Preserved pre-edit artwork: authoritative RGB outside the ankle patch and authoritative alpha everywhere. Never overwrite with regenerated artwork."
+  ],
+  "right-coverage": [
+    "exec-be9931f4-ebfd-4d43-90d6-1609f3e6ed5d",
+    "Preserved pre-edit artwork: authoritative RGB outside the ankle patch and authoritative alpha everywhere. Never overwrite with regenerated artwork."
+  ],
+  "profile-left-coverage": [
+    "exec-61bc7ea7-ccce-4097-a18e-daf1af13be07",
+    "Preserved pre-edit artwork: authoritative RGB outside the ankle patch and authoritative alpha everywhere. Never overwrite with regenerated artwork."
+  ],
+  "profile-right-coverage": [
+    "exec-e80e838d-2682-441f-a16e-ac0ed848bb11",
+    "Preserved pre-edit artwork: authoritative RGB outside the ankle patch and authoritative alpha everywhere. Never overwrite with regenerated artwork."
   ]
 }

@@ -6,6 +6,7 @@ let names = ["front", "left", "right", "profile-left", "profile-right"]
 let labels = ["立绘姿态", "左斜侧", "右斜侧", "左侧面", "右侧面"]
 let defaults = UserDefaults.standard
 let testing = CommandLine.arguments.contains("--qa")
+let maximumPetHeight: Double = 1440
 func bounded(_ v: Double, _ a: Double, _ b: Double) -> Double { min(b,max(a,v)) }
 
 final class Settings {
@@ -21,7 +22,7 @@ final class Settings {
     var automatic = defaults.bool(forKey:"automatic")
     var wandering = defaults.bool(forKey:"wandering")
     var rest = false
-    init() { view = min(4,max(0,view));height=bounded(height,240,720);period=bounded(period,8,24); amplitude=bounded(amplitude,0,2.0);blinkMin=bounded(blinkMin,4,16);blinkMax=bounded(blinkMax,blinkMin+1,24) }
+    init() { view = min(4,max(0,view));height=bounded(height,240,maximumPetHeight);period=bounded(period,8,24); amplitude=bounded(amplitude,0,2.0);blinkMin=bounded(blinkMin,4,16);blinkMax=bounded(blinkMax,blinkMin+1,24) }
     func save() {
         if testing { return }
         for (k,v) in ["view":view,"height":height,"period":period,"amplitude":amplitude,"blinkMin":blinkMin,"blinkMax":blinkMax,"top":top,"pass":pass,"paused":paused,"wandering":wandering,"automatic":automatic] as [String:Any] { defaults.set(v,forKey:k) }
@@ -32,6 +33,7 @@ let settings = Settings()
 final class PetScene: SKScene {
     var pet = SKSpriteNode()
     var legRig: WalkingRig!
+    let walkingCostume = SKSpriteNode()
     var gaitPhase: Double = 0
     var gaitBlend: Float = 0
     var clock: Double = 0
@@ -44,46 +46,92 @@ final class PetScene: SKScene {
     var walking = false
     var facing: Int?
     var displayView: Int { facing ?? settings.view }
-    let cols = 28, rows = 42
+    let cols = 56, rows = 84
     var source = [SIMD2<Float>]()
     var textures = [String:SKTexture]()
     var eyeBoxes: [SIMD4<Float>] = [SIMD4(0.465,0.887,0.590,0.924),SIMD4(0.366,0.895,0.470,0.929),SIMD4(0.494,0.895,0.610,0.923),SIMD4(0.293,0.903,0.347,0.928),SIMD4(0.713,0.900,0.764,0.927)]
+    let faceBoxes: [SIMD4<Float>] = [SIMD4(0.460,0.855,0.612,0.929),SIMD4(0.373,0.864,0.490,0.933),SIMD4(0.486,0.860,0.615,0.931),SIMD4(0.273,0.867,0.370,0.931),SIMD4(0.696,0.867,0.794,0.931)]
     override init(size: CGSize) {
         super.init(size:size)
         backgroundColor = .clear; scaleMode = .resizeFill
         for y in 0...rows { for x in 0...cols { source.append(SIMD2(Float(x)/Float(cols),Float(y)/Float(rows))) } }
         pet.subdivisionLevels=0; addChild(pet); legRig=WalkingRig(parent:self); loadView(); nextBlink = Double.random(in:settings.blinkMin...settings.blinkMax)
+        walkingCostume.zPosition=3; addChild(walkingCostume)
     }
     required init?(coder:NSCoder) { fatalError() }
     func texture(_ name:String) -> SKTexture {
         if let t=textures[name] {return t}
         let url=Bundle.main.resourceURL!.appendingPathComponent("Assets/\(name).png")
         guard let im=NSImage(contentsOf:url) else { fatalError("Missing asset \(name)") }
-        let t=SKTexture(image:im);t.filteringMode = .linear; textures[name]=t; return t
+        let t=SKTexture(image:im);t.filteringMode = .linear;t.usesMipmaps=true; textures[name]=t; return t
     }
     func loadView() {
         let name=names[displayView]
         let bodyName = facing == nil ? name : (displayView == 3 ? "walk-left" : "walk-right")
-        pet.texture=texture(bodyName)
+        pet.texture=texture(facing == nil ? "Clean/"+name : bodyName)
         if facing != nil {legRig.load(displayView);pet.texture=legRig.body}
         let shader=SKShader(source:"""
         void main() {
             vec2 uv = v_tex_coord;
-            vec4 base = texture2D(u_texture,uv);
-            vec4 closed = texture2D(u_closed,uv);
             float mask = smoothstep(u_box.x,u_box.x+0.004,uv.x)*(1.0-smoothstep(u_box.z-0.004,u_box.z,uv.x))*smoothstep(u_box.y,u_box.y+0.003,uv.y)*(1.0-smoothstep(u_box.w-0.003,u_box.w,uv.y));
-            vec4 c = mix(base,closed,mask*u_blink);
+            // Subtle eyelid narrowing between blinks, confined to the eye box.
+            vec2 eyeUV = uv;
+            float eyeCenter = (u_box.y+u_box.w)*0.5;
+            eyeUV.y += (uv.y-eyeCenter)*u_expression*mask;
+            // Use the cleaned artwork's color AND coverage. Old cutouts have
+            // pinholes inside the hair that otherwise reappear as dark specks.
+            vec4 base = texture2D(u_texture,eyeUV);
+            // Keep Clean coverage and lower-body colors as the stable animation base.
+            // Refined artwork contributes only opaque upper-body interiors; its
+            // generated silhouette must never move an edge or create a pinhole.
+            vec4 refined = texture2D(u_refined,eyeUV);
+            float detailWeight = smoothstep(0.50,0.60,uv.y)
+                * smoothstep(0.98,0.995,base.a)
+                * smoothstep(0.98,0.995,refined.a);
+            vec3 refinedColor = refined.rgb / max(refined.a,0.001) * base.a;
+            vec4 detailed = vec4(mix(base.rgb,refinedColor,detailWeight),base.a);
+            // Local face correction; retain the established artwork everywhere else.
+            float faceMask = smoothstep(u_face_box.x,u_face_box.x+0.006,uv.x)
+                * (1.0-smoothstep(u_face_box.z-0.006,u_face_box.z,uv.x))
+                * smoothstep(u_face_box.y,u_face_box.y+0.004,uv.y)
+                * (1.0-smoothstep(u_face_box.w-0.004,u_face_box.w,uv.y));
+            vec4 face = texture2D(u_face,eyeUV);
+            // The face outline is intentionally editable (jaw and lips); use
+            // its local coverage too, so the old lip edge cannot ghost through.
+            float faceAlpha = min(base.a,face.a);
+            vec4 fittedFace = vec4(face.rgb/max(face.a,0.001)*faceAlpha,faceAlpha);
+            detailed = mix(detailed,fittedFace,faceMask);
+            vec4 closed = texture2D(u_closed,uv);
+            vec4 c = mix(detailed,closed,mask*u_blink);
             // Remove nearly invisible matte residue; preserve antialiasing and premultiplication.
-            float a = smoothstep(0.025,0.99,c.a);
+            float a = smoothstep(0.025,0.99,detailed.a);
+            // Preserve the leg-free body's intentional opening below the waist;
+            // cleanup can mistake that empty area for red cloth. Never apply
+            // the old matte to the hair or to a full-body idle sprite.
+            float cutout = u_body_cutout*(1.0-smoothstep(0.50,0.60,uv.y));
+            a = mix(a,min(a,smoothstep(0.025,0.99,texture2D(u_cutout,uv).a)),cutout);
+            // Keep the entire hip-length costume in front of the thigh. A
+            // waist-only mask exposes the cutout's rear contour during strides.
+            a *= mix(1.0,smoothstep(0.34,0.38,uv.y),u_foreground);
             gl_FragColor = vec4(c.rgb*(a/max(c.a,0.001)),a);
         }
         """)
-        shader.uniforms=[SKUniform(name:"u_closed",texture:texture(name+"-closed")),SKUniform(name:"u_blink",float:0),SKUniform(name:"u_box",vectorFloat4:eyeBoxes[displayView])]
+        shader.uniforms=[SKUniform(name:"u_closed",texture:texture(name+"-closed")),SKUniform(name:"u_blink",float:0),SKUniform(name:"u_box",vectorFloat4:eyeBoxes[displayView]),SKUniform(name:"u_foreground",float:0),SKUniform(name:"u_expression",float:0)]
+        shader.addUniform(SKUniform(name:"u_face",texture:texture("Face/"+name)))
+        shader.addUniform(SKUniform(name:"u_face_box",vectorFloat4:faceBoxes[displayView]))
+        shader.addUniform(SKUniform(name:"u_refined",texture:texture("Refined/"+(facing == nil ? name : bodyName+"-body"))))
+        shader.addUniform(SKUniform(name:"u_body_cutout",float:facing == nil ? 0 : 1))
+        shader.addUniform(SKUniform(name:"u_cutout",texture:facing == nil ? pet.texture! : texture(bodyName+"-body")))
+        walkingCostume.texture=pet.texture
+        walkingCostume.shader=shader.copy() as? SKShader
+        walkingCostume.shader?.uniforms=shader.uniforms.map { $0.name == "u_foreground" ? SKUniform(name:"u_foreground",float:1) : $0 }
+        walkingCostume.isHidden=facing == nil
         pet.shader=shader; layout(); render(clock,blink:false)
     }
     func layout() {
         let h = min(size.height-40,(size.width-120)*1.5)
         pet.size=CGSize(width:h/1.5,height:h); pet.position=CGPoint(x:size.width/2,y:size.height/2)
+        walkingCostume.size=pet.size; walkingCostume.position=pet.position
         legRig?.layout(size:pet.size,position:pet.position,visible:facing != nil)
     }
     override func didChangeSize(_ oldSize:CGSize) { layout() }
@@ -102,29 +150,44 @@ final class PetScene: SKScene {
         let phase = manual ? t/WalkCycle.previewPeriod : gaitPhase
         let gait=Float(phase*2 * .pi)
         let walkPose = facing != nil
+        // A profile is narrow and sits off-center in its texture. The old
+        // centered hair mask incorrectly treated its torso and legs as hair.
+        let profile = displayView >= 3
+        let idleScale:Float = displayView == 0 ? 1 : (profile ? 0.4 : 0.65)
+        let idleAmplitude = a*idleScale
+        let walkAmount:Float = walkPose ? (manual ? (walking ? 1 : 0) : gaitBlend) : 0
+        let pelvis=WalkCycle.pelvis(phase,amount:walkAmount)
         let clothPhase = walkPose ? gait : p
-        let clothScale:Float = walkPose ? (walking ? 0.18 : 0) : a
-        let bodyX:Float = walkPose ? 0 : sin(p)*0.010*a
-        let bodyY:Float = walkPose ? 0 : sin(p+0.5)*0.010*a
-        let angle:Float = walkPose ? 0 : sin(p-0.35)*0.012*a
+        let clothScale:Float = walkPose ? walkAmount*0.65 : a*(displayView == 0 ? 1 : (profile ? 0.25 : 0.5))
+        let bodyX:Float = walkPose ? pelvis.x : sin(p)*0.010*idleAmplitude
+        let bodyY:Float = walkPose ? pelvis.y : sin(p+0.5)*0.010*idleAmplitude
+        let angle:Float = walkPose ? 0 : sin(p-0.35)*0.012*idleAmplitude
         let ca=cos(angle), sa=sin(angle)
         var dest=[SIMD2<Float>](); dest.reserveCapacity(source.count)
-        for q in source {
+        for original in source {
+            let q = BustShape.project(original,view:displayView)
             let x=q.x,y=q.y
             let upper=min(1,max(0,(y-0.12)/0.56))
-            let outer=min(1,max(0,(abs(x-0.5)-0.14)/0.25))
+            var outer=min(1,max(0,(abs(x-0.5)-0.14)/0.25))
+            if displayView != 0 {
+                let left:Float = profile ? (displayView == 3 ? 0.21 : 0.55) : 0.30
+                let right:Float = profile ? (displayView == 3 ? 0.56 : 0.91) : 0.72
+                let protected = WalkingUpperBody.smooth((x-left+0.045)/0.045)
+                    * (1-WalkingUpperBody.smooth((x-right)/0.045))
+                // Keep the painted body/legs rigid; only the outer hair and
+                // fabric receive the local wave. Global motion is a rotation.
+                outer *= 1-protected
+            }
             let hairRegion=max(0,min(1,(0.86-y)*5))*min(1,max(0,(y-0.12)*5))
             let hem=max(0,1-y/0.40)*outer
             let hair=sin(clothPhase-0.8-y*2.0+x)*0.018*clothScale*outer*hairRegion
             let skirt=sin(clothPhase-1.1+x*2)*0.016*clothScale*hem
             // Floating pose: translate every vertex, including both feet.
             var dx=bodyX+hair+skirt
-            let dy=bodyY + cos(clothPhase-0.8-y*2)*0.004*clothScale*outer*hairRegion - nod*0.005*upper
-            if walking {
-                // Small opposing shoulder/hip motion, no whole-body floating or rocking.
-                let torso=max(0,1-abs(y-0.62)/0.24)
-                dx += sin(gait)*0.003*(y-0.62)/0.24*torso
-
+            var dy=bodyY + cos(clothPhase-0.8-y*2)*0.004*clothScale*outer*hairRegion - nod*0.005*upper
+            if walkPose {
+                let motion=WalkingUpperBody.offset(q,phase:phase,time:t,amount:walkAmount,facing:displayView)
+                dx += motion.x; dy += motion.y
             }
             // Rotate in physical aspect ratio around the body center, then float.
             let rx=(x-0.5)*ca-(y-0.52)*1.5*sa
@@ -133,7 +196,13 @@ final class PetScene: SKScene {
         }
         if walkPose {legRig.render(phase:phase,amount:manual ? (walking ? 1 : 0) : gaitBlend)}
         pet.warpGeometry=SKWarpGeometryGrid(columns:cols,rows:rows,sourcePositions:source,destinationPositions:dest)
-        pet.shader?.uniformNamed("u_blink")?.floatValue = (blink || settings.rest) ? 1 : 0
+        walkingCostume.warpGeometry=pet.warpGeometry
+        // Preview blinks use time, not gait phase, so they don't repeat every step.
+        let previewBlink = manual && walkPose && t.truncatingRemainder(dividingBy:4.7) > 2.2 && t.truncatingRemainder(dividingBy:4.7) < 2.36
+        for node in [pet,walkingCostume] {
+            node.shader?.uniformNamed("u_blink")?.floatValue = (blink || previewBlink || settings.rest) ? 1 : 0
+            node.shader?.uniformNamed("u_expression")?.floatValue = (0.5+0.5*sin(Float(t)*1.15))*0.22*walkAmount
+        }
     }
     func rescheduleBlink() {nextBlink=clock+Double.random(in:settings.blinkMin...settings.blinkMax);blinkEnd = -1}
 }
@@ -335,8 +404,7 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
     func savePosition(){if !testing{defaults.set(NSStringFromPoint(window.frame.origin),forKey:"origin")}}
     func windowDidMove(_ n:Notification){if !automaticMove {savePosition()}}
     func resize(to h:Double){
-        let maxHeight=min(720,(NSScreen.main?.visibleFrame.height ?? 900)-30)
-        settings.height=bounded(h,240,maxHeight)
+        settings.height=bounded(h,240,maximumPetHeight)
         let origin=window.frame.origin
         window.setFrame(NSRect(x:origin.x,y:origin.y,width:settings.height/1.5+120,height:settings.height+40),display:true)
         scene?.size=view.bounds.size;scene?.layout();settings.save()
@@ -374,10 +442,10 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
         let content=p.contentView!
         func text(_ s:String,_ x:CGFloat,_ y:CGFloat,_ w:CGFloat,_ h:CGFloat=24)->NSTextField {let l=NSTextField(wrappingLabelWithString:s);l.frame=NSRect(x:x,y:y,width:w,height:h);content.addSubview(l);return l}
         _=text("缓慢呼吸 · 独立随机眨眼",24,371,410)
-        let configs:[(String,String,Double,Double,Double)]=[("height","人物高度",settings.height,240,720),("period","轻晃周期（秒）",settings.period,8,24),("amplitude","晃动幅度",settings.amplitude,0,2.0),("blinkMin","眨眼最短间隔（秒）",settings.blinkMin,4,16),("blinkMax","眨眼最长间隔（秒）",settings.blinkMax,5,24)]
+        let configs:[(String,String,Double,Double,Double)]=[("height","人物高度",settings.height,240,maximumPetHeight),("period","轻晃周期（秒）",settings.period,8,24),("amplitude","晃动幅度",settings.amplitude,0,2.0),("blinkMin","眨眼最短间隔（秒）",settings.blinkMin,4,16),("blinkMax","眨眼最长间隔（秒）",settings.blinkMax,5,24)]
         for (idx,c) in configs.enumerated(){let y=CGFloat(325-idx*49);_=text(c.1,24,y,170);let sl=NSSlider(value:c.2,minValue:c.3,maxValue:c.4,target:self,action:#selector(slide(_:)));sl.identifier=NSUserInterfaceItemIdentifier(c.0);sl.frame=NSRect(x:205,y:y,width:160,height:24);sl.isContinuous=true;content.addSubview(sl);sliders[c.0]=sl;valueLabels[c.0]=text(String(format:"%.1f",c.2),378,y,65)}
         let b=NSButton(title:"更慢：18 秒 / 9–16 秒眨眼",target:self,action:#selector(slower));b.frame=NSRect(x:24,y:56,width:300,height:30);content.addSubview(b)
-        _=text("拖动人物移动；滚轮缩放；右键或菜单栏白色头像操作。\n原始图片 1024×1536，Retina 建议高度不超过 720 点。",24,8,420,43)
+        _=text("拖动人物移动；滚轮缩放；右键或菜单栏白色头像操作。\n人物高度最高 1440 点，超出屏幕时可拖动查看。",24,8,420,43)
         panel=p;p.center();p.makeKeyAndOrderFront(nil);NSApp.activate(ignoringOtherApps:true)
     }
     @objc func slide(_ s:NSSlider){
@@ -393,6 +461,7 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
     func refreshSliders(){for(k,v) in ["height":settings.height,"period":settings.period,"amplitude":settings.amplitude,"blinkMin":settings.blinkMin,"blinkMax":settings.blinkMax]{sliders[k]?.doubleValue=v;valueLabels[k]?.stringValue=String(format:"%.1f",v)}}
     @objc func slower(){settings.period=18;settings.blinkMin=9;settings.blinkMax=16;scene.rescheduleBlink();settings.save();refreshSliders()}
     func runQA() {
+        if CommandLine.arguments.contains("--large") { resize(to:maximumPetHeight) }
         settings.automatic=false;settings.wandering=false;scene.facing=nil;scene.walking=false
         let dir=CommandLine.arguments.last!;try? FileManager.default.createDirectory(atPath:dir,withIntermediateDirectories:true)
         scene.manual=true;settings.paused=false;view.isPaused=false;settings.amplitude=CommandLine.arguments.contains("--max") ? 2.0 : 1.3;settings.period=CommandLine.arguments.contains("--reference") ? 8 : (CommandLine.arguments.contains("--slow") ? 18 : 12);settings.blinkMin=CommandLine.arguments.contains("--slow") ? 9 : 6;settings.blinkMax=CommandLine.arguments.contains("--slow") ? 16 : 12
@@ -455,6 +524,32 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
         let k=WalkCycle.knee(hip:h,ankle:a,upper:0.3,lower:0.31,direction:1)
         func length(_ v:SIMD2<Float>)->Float {sqrt(v.x*v.x+v.y*v.y)}
         report["legBonesKeepTheirLength"] = abs(length(k-h)-0.3)<0.0001 && abs(length(a-k)-0.31)<0.0001
+        let savedAmplitude=settings.amplitude
+        let savedGreeting=scene.greeting
+        scene.greeting = -100 // Isolate idle measurements from randomized routine greetings.
+        settings.amplitude=2;scene.facing=nil;scene.walking=false
+        var maxProfileStretch:Float=0
+        for side in [3,4] {
+            settings.view=side;scene.loadView()
+            for frame in 0..<32 {
+                scene.render(Double(frame)/32*settings.period,blink:false)
+                let grid=scene.pet.warpGeometry as! SKWarpGeometryGrid
+                for row in 11..<65 {for col in (side == 3 ? 14..<30 : 33..<50) {
+                    let i=row*(scene.cols+1)+col
+                    for j in [i+1,i+scene.cols+1] {
+                        let before=BustShape.project(scene.source[j],view:side)-BustShape.project(scene.source[i],view:side)
+                        let after=grid.destPosition(at:j)-grid.destPosition(at:i)
+                        let original=length(SIMD2(before.x,before.y*1.5))
+                        let deformed=length(SIMD2(after.x,after.y*1.5))
+                        maxProfileStretch=max(maxProfileStretch,abs(deformed/original-1))
+                    }
+                }}
+            }
+        }
+        report["maxProfileBodyStretchAtMaximumAmplitude"]=maxProfileStretch
+        report["profileBodyKeepsProportionsAtMaximumAmplitude"]=maxProfileStretch<0.005
+        settings.amplitude=savedAmplitude
+        scene.greeting=savedGreeting
         report["assets"]=names;report["periodSeconds"]=settings.period;report["blinkRangeSeconds"]=[settings.blinkMin,settings.blinkMax]
         scene.manual=false;scene.clock=0;scene.last=0;scene.rescheduleBlink()
         var blinkTimes=[Double]();var previousCount=scene.blinkCount
@@ -464,9 +559,10 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
         report["blinkIntervalsInRange"]=intervals.allSatisfy{$0 >= settings.blinkMin && $0 <= settings.blinkMax+0.034}
         let frozen=scene.clock;settings.paused=true;scene.update(121);report["pauseFreezesClock"]=scene.clock==frozen;settings.paused=false
         scene.manual=true;scene.clock=0;scene.last=0;scene.rescheduleBlink()
+        scene.greeting = -100
         var index=0
         func step(){
-            if index>=30 {if CommandLine.arguments.contains("--quick") { NSApp.terminate(nil);return };self.captureMovie(dir:dir){
+            if index >= (CommandLine.arguments.contains("--idle-samples") ? 46 : 30) {if CommandLine.arguments.contains("--quick") { NSApp.terminate(nil);return };self.captureMovie(dir:dir){
                 if let data=try? JSONSerialization.data(withJSONObject:report,options:.prettyPrinted){try? data.write(to:URL(fileURLWithPath:dir+"/checks.json"))};NSApp.terminate(nil)};return}
             let outputName:String
             if index<10 {
@@ -475,11 +571,15 @@ final class Controller:NSObject,NSApplicationDelegate,NSWindowDelegate {
             } else if index<14 {
                 self.scene.facing=index<12 ? 3 : 4;self.scene.walking=true
                 outputName=index<12 ? "walk-left" : "walk-right"
-            } else {
+            } else if index<30 {
                 self.scene.facing=index<22 ? 3 : 4;self.scene.walking=true
                 outputName="gait-\(index<22 ? "left" : "right")-\((index-14)%8)"
+            } else {
+                settings.view=index<38 ? 3 : 4;self.scene.facing=nil;self.scene.walking=false
+                outputName="idle-\(index<38 ? "left" : "right")-\((index-30)%8)"
             }
-            self.scene.loadView();self.scene.render(index<14 ? 0 : Double((index-14)%8)/8*WalkCycle.previewPeriod,blink:index<14 && index%2==1)
+            let time=index<14 ? 0 : (index<30 ? Double((index-14)%8)/8*WalkCycle.previewPeriod : Double((index-30)%8)/8*settings.period)
+            self.scene.loadView();self.scene.render(time,blink:index<14 && index%2==1)
             DispatchQueue.main.asyncAfter(deadline:.now()+0.15){
                 if let cg=self.view.texture(from:self.scene)?.cgImage(){let rep=NSBitmapImageRep(cgImage:cg);try? rep.representation(using:.png,properties:[:])?.write(to:URL(fileURLWithPath:dir+"/\(outputName)-\(index%2).png"))}
                 index += 1;step()
